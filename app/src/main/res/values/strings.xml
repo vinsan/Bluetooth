@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Bluetooth</string>
+    <string name="bt_on">BT ON</string>
+    <string name="bt_off">BT OFF</string>
+    <string name="scan">Scan</string>
+</resources>
