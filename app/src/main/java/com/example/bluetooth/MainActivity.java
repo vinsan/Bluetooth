@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.ParcelUuid;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -18,10 +19,12 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
+    Context ct;
     BluetoothAdapter mBluetoothAdapter;
     BroadcastReceiver mReceiver;
     String LOG_TAG = "BLUETOOTH_TEST";
     ArrayList<BluetoothDevice> devices;
+    MyBroadcastReceiver br;
     private String [] permissions = {"android.permission.BLUETOOTH", "android.permission.BLUETOOTH_ADMIN", "android.permission.ACCESS_FINE_LOCATION", "android.permission.ACCESS_COARSE_LOCATION"};
 
 
@@ -35,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
                 ActivityCompat.requestPermissions(this, permissions, 200);
         }
 
+        ct = this;
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         devices = new ArrayList<BluetoothDevice>();
 
@@ -114,15 +118,7 @@ public class MainActivity extends AppCompatActivity {
                 dev1.setText(d.getName());
                 boolean bond = d.createBond();
                 if(bond){
-                    BroadcastReceiver br = new BroadcastReceiver() {
-                        @Override
-                        public void onReceive(Context context, Intent intent) {
-                            if(intent.getAction().equals(BluetoothDevice.ACTION_BOND_STATE_CHANGED)){
-                                Log.d(LOG_TAG, d.getName()+" bond success!");
-                                //OPERAZIONI PER CONNESSIONE
-                            }
-                        }
-                    };
+                    br = new MyBroadcastReceiver(d, ct);
                     IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
                     registerReceiver(br, filter);
                 }else{
@@ -147,15 +143,7 @@ public class MainActivity extends AppCompatActivity {
                 dev2.setText(d.getName());
                 boolean bond = d.createBond();
                 if(bond){
-                    BroadcastReceiver br = new BroadcastReceiver() {
-                        @Override
-                        public void onReceive(Context context, Intent intent) {
-                            if(intent.getAction().equals(BluetoothDevice.ACTION_BOND_STATE_CHANGED)){
-                                Log.d(LOG_TAG, d.getName()+" bond success!");
-                                //OPERAZIONI PER CONNESSIONE
-                            }
-                        }
-                    };
+                    br = new MyBroadcastReceiver(d, ct);
                     IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
                     registerReceiver(br, filter);
                 }else{
@@ -169,6 +157,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy(){
         super.onDestroy();
         Log.d(LOG_TAG, "onDestroy()");
+        if(br!=null){
+            br.closeSocket();
+            unregisterReceiver(br);
+        }
         if(mBluetoothAdapter.isDiscovering())
             mBluetoothAdapter.cancelDiscovery();
         if(mReceiver!=null){
@@ -176,5 +168,7 @@ public class MainActivity extends AppCompatActivity {
             mReceiver = null;
         }
     }
+
+
 
 }
